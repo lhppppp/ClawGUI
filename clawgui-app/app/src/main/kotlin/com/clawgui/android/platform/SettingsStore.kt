@@ -138,14 +138,6 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean("trace_enabled", true)
         set(value) { prefs.edit().putBoolean("trace_enabled", value).apply() }
 
-    /**
-     * 诊断模式。打开后调用点内的 `if (Log.diag) Log.i(...)` 会写更多细节日志
-     * (VLM 每步、bus 出入队等)。默认关,常规用户无感。
-     */
-    var diagnosticMode: Boolean
-        get() = prefs.getBoolean("diagnostic_mode", false)
-        set(value) { prefs.edit().putBoolean("diagnostic_mode", value).apply() }
-
     // ------------------------------------------------------------------
     // 飞书 channel
     // ------------------------------------------------------------------

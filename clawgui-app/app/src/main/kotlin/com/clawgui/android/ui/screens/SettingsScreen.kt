@@ -502,7 +502,7 @@ private fun ChannelsSubPage(
 
     SubPageScaffold(showRestartHint = true, dirty = dirty, onSave = ::save) {
         Text(
-            "需要在飞书开放平台创建自建应用并填入 App ID / App Secret,详见项目 README。",
+            "配置指南见项目 docs/feishu-setup.md。",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -955,14 +955,6 @@ private fun TracesSubPage(
 
 @Composable
 private fun AboutSubPage() {
-    val app = App.getInstance()
-    val store = app.settingsStore
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    var diagEnabled by remember { mutableStateOf(store.diagnosticMode) }
-    var exporting by remember { mutableStateOf(false) }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -989,92 +981,6 @@ private fun AboutSubPage() {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
-
-        Spacer(Modifier.height(24.dp))
-
-        // ---- 诊断卡(开发/调试阶段用,上线前可从 UI 撤掉)----
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = MaterialTheme.shapes.large,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text("诊断", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    "复现 bug 后导出日志,可直接分享给开发者。开启\"诊断模式\"会多打一些细节日志(不影响功能,略费电)。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("诊断模式", modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = diagEnabled,
-                        onCheckedChange = { checked ->
-                            diagEnabled = checked
-                            store.diagnosticMode = checked
-                            com.clawgui.android.core.util.Log.setDiagEnabled(checked)
-                        },
-                    )
-                }
-
-                Button(
-                    onClick = {
-                        if (exporting) return@Button
-                        exporting = true
-                        scope.launch {
-                            try {
-                                val file = withContext(Dispatchers.IO) {
-                                    com.clawgui.android.core.util.LogExporter.exportToFile(app.workspaceDir)
-                                }
-                                Toast.makeText(
-                                    context,
-                                    "已导出 ${file.name}(${file.length() / 1024} KB)",
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                                val intent = com.clawgui.android.core.util.LogExporter
-                                    .buildShareIntent(context, file)
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                Toast.makeText(
-                                    context,
-                                    "导出失败: ${e.message ?: e::class.simpleName}",
-                                    Toast.LENGTH_LONG,
-                                ).show()
-                            } finally {
-                                exporting = false
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !exporting,
-                ) {
-                    Text(if (exporting) "导出中…" else "导出诊断日志")
-                }
-
-                OutlinedButton(
-                    onClick = {
-                        scope.launch {
-                            val n = withContext(Dispatchers.IO) {
-                                com.clawgui.android.core.util.LogExporter.clearOldLogs(app.workspaceDir)
-                            }
-                            Toast.makeText(context, "已清理 $n 个旧日志文件", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("清空旧日志")
-                }
-            }
-        }
 
         Spacer(Modifier.height(8.dp))
     }

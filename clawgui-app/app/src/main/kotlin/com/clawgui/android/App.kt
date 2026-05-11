@@ -108,8 +108,6 @@ class App : Application(), InAppBridge {
 
         workspaceDir = File(filesDir, "workspace").also { it.mkdirs() }
         settingsStore = SettingsStore(this)
-        // 诊断开关进程级常驻,Log 对象读这个标志决定是否写细节
-        com.clawgui.android.core.util.Log.setDiagEnabled(settingsStore.diagnosticMode)
         sessions = SessionManager(workspaceDir)
         externalInbox = ExternalInboxStore(workspaceDir)
 
